@@ -75,6 +75,9 @@ kubectl apply -f tasks/my-task/0.1/my-task.yaml --dry-run=server
 |----------|---------|--------------|
 | `yaml-lint.yaml` | PR | `yamllint .` on all YAML |
 | `checkton.yaml` | PR | ShellCheck-style lint on embedded scripts |
+| `shellcheck.yaml` | PR (*.sh changes) | ShellCheck on standalone shell scripts (changed files, severity=warning) |
+| `hadolint.yaml` | PR (Dockerfile changes) | Dockerfile best-practice linting via Hadolint |
+| `gitleaks.yaml` | PR | Secret detection via Gitleaks (differential, redacted output) |
 | `validate-task-and-pipeline-yamls.yaml` | PR, merge queue | `kubectl apply --dry-run=server` on all tasks, stepactions, pipelines (Kind + Tekton) |
 | `run-task-tests.yaml` | PR, merge queue | Detects changed `tasks/**/*.{yaml,sh}`, runs functional tests for tasks with a `tests/` directory (Kind + Konflux CI) |
 | `validate-agents-md.yaml` | PR | Ensures `AGENTS.md` stays under 60 lines |

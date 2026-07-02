@@ -33,8 +33,11 @@ Tests are Tekton Pipelines in `tasks/<...>/<version>/tests/test-*.yaml`. Positiv
 | Gate | Check |
 |------|-------|
 | yamllint | All YAML syntax |
-| checkton | ShellCheck on embedded bash |
-| validate YAMLs | `kubectl apply --dry-run=server` on all tasks/stepactions/pipelines |
+| checkton | ShellCheck on embedded bash in Tekton tasks |
+| shellcheck | Standalone `.sh` files (changed files only, severity=warning) |
+| hadolint | Dockerfile best practices (on Dockerfile changes) |
+| gitleaks | Secret detection (differential, redacted) |
+| validate YAMLs | `kubectl apply --dry-run=server` on tasks/stepactions/pipelines |
 | run-task-tests | Functional tests for changed tasks with `tests/` dir |
 | validate-agents-md | Ensures this file stays under 60 lines |
 
@@ -47,12 +50,10 @@ Tests are Tekton Pipelines in `tasks/<...>/<version>/tests/test-*.yaml`. Positiv
 
 ## Testing & Security Expectations
 
-- Every new or modified task **must** include functional tests in `tests/` — no exceptions
-- If you encounter a task without tests, add them before making other changes
+- Every new or modified task **must** include functional tests in `tests/` — add them before making other changes
 - Include both positive (valid input succeeds) and negative (invalid input fails correctly) test cases
 - Tests share a namespace and PVC per task — each test pipeline must use a unique data path (e.g. `test-repo-pass`, `test-repo-fail`)
 - Never embed secrets, tokens, or credentials in task YAML or test fixtures — use Kubernetes Secrets
 - Pin production images by digest (`latest` ok for dev/utils); bash must use `set -o errexit -o nounset -o pipefail`
-- Tasks producing outputs for downstream consumers (artifact tags, status, URLs) must declare `results`
-- Tasks using `runAsUser: 0` require explicit justification in the PR
+- Tasks producing outputs must declare `results`; tasks using `runAsUser: 0` require PR justification
 - Templated CI files (`<TEMPLATED FILE!>`) come from `konflux-ci/task-repo-shared-ci` — fix upstream

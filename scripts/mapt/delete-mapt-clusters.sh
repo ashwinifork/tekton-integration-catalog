@@ -43,8 +43,10 @@ regions=$(aws ec2 describe-regions --query 'Regions[].RegionName' --output text)
 # Function to calculate age in seconds from a timestamp (YYYY-MM-DDTHH:MM:SSZ)
 get_age_seconds() {
     local timestamp="$1"
-    local epoch_time=$(date -u -d "$timestamp" +%s 2>/dev/null)
-    local current_epoch=$(date +%s)
+    local epoch_time
+    epoch_time=$(date -u -d "$timestamp" +%s 2>/dev/null)
+    local current_epoch
+    current_epoch=$(date +%s)
 
     if [ -z "$epoch_time" ] || [ "$epoch_time" -eq 0 ]; then
         echo 0
@@ -121,7 +123,8 @@ delete_resource() {
             ;;
         ENI)
             if ! $DRY_RUN; then
-                local attachment_id=$(aws ec2 describe-network-interfaces --region "$region" --network-interface-ids "$id" --query 'NetworkInterfaces[0].Attachment.AttachmentId' --output text 2>/dev/null)
+                local attachment_id
+                attachment_id=$(aws ec2 describe-network-interfaces --region "$region" --network-interface-ids "$id" --query 'NetworkInterfaces[0].Attachment.AttachmentId' --output text 2>/dev/null)
                 if [ "$attachment_id" != "None" ] && [ -n "$attachment_id" ]; then
                     echo "   [DELETE] Detaching ENI $id ($attachment_id) in $region..."
                     aws ec2 detach-network-interface --region "$region" --attachment-id "$attachment_id"
@@ -131,7 +134,8 @@ delete_resource() {
             ;;
         IGW)
             if ! $DRY_RUN; then
-                local vpc_id_to_detach=$(aws ec2 describe-internet-gateways --region "$region" --internet-gateway-ids "$id" --query 'InternetGateways[0].Attachments[0].VpcId' --output text 2>/dev/null)
+                local vpc_id_to_detach
+                vpc_id_to_detach=$(aws ec2 describe-internet-gateways --region "$region" --internet-gateway-ids "$id" --query 'InternetGateways[0].Attachments[0].VpcId' --output text 2>/dev/null)
                 if [ "$vpc_id_to_detach" != "None" ] && [ -n "$vpc_id_to_detach" ]; then
                     echo "   [DELETE] Detaching IGW $id from VPC $vpc_id_to_detach in $region..."
                     aws ec2 detach-internet-gateway --region "$region" --internet-gateway-id "$id" --vpc-id "$vpc_id_to_detach"
@@ -141,7 +145,8 @@ delete_resource() {
             ;;
         RT)
             if ! $DRY_RUN; then
-                local assoc_ids=$(aws ec2 describe-route-tables --region "$region" --route-table-ids "$id" --query 'RouteTables[0].Associations[?Main != `true`].RouteTableAssociationId' --output text 2>/dev/null)
+                local assoc_ids
+                assoc_ids=$(aws ec2 describe-route-tables --region "$region" --route-table-ids "$id" --query 'RouteTables[0].Associations[?Main != `true`].RouteTableAssociationId' --output text 2>/dev/null)
                 for assoc_id in $assoc_ids; do
                     echo "   [DELETE] Disassociating Route Table $id from subnet ($assoc_id)..."
                     aws ec2 disassociate-route-table --region "$region" --association-id "$assoc_id"

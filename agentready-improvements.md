@@ -28,7 +28,7 @@ These commands already work but aren't documented in the single-file format the 
 
 ### CI Quality Gates (73/100, +5 pts potential)
 
-**Action**: The repo has 5 CI workflows (yamllint, checkton, validate-yamls, run-task-tests, validate-agents-md). The tool failed to detect `run-task-tests` as a test gate — likely a naming/pattern recognition issue. Two options:
+**Action**: The repo has 8 CI workflows (yamllint, checkton, shellcheck, hadolint, gitleaks, validate-yamls, run-task-tests, validate-agents-md). The tool failed to detect `run-task-tests` as a test gate — likely a naming/pattern recognition issue. Two options:
 
 1. **Quick fix**: Add a comment or job name containing `test` more prominently in the workflow (may be enough for the tool to detect it)
 2. **Proper fix**: Confirm the tool's detection heuristic and adjust workflow naming to match

@@ -52,6 +52,9 @@ Both `pull_request` and `merge_group` triggers are active. Tests run on PR and a
 |----------|---------|--------------|
 | `yaml-lint.yaml` | All YAML | Yes |
 | `checkton.yaml` | Embedded bash in YAML | Yes |
+| `shellcheck.yaml` | `**/*.sh` (changed files only) | Yes |
+| `hadolint.yaml` | `**/Dockerfile*` | Yes |
+| `gitleaks.yaml` | All files (differential) | Yes |
 | `validate-task-and-pipeline-yamls.yaml` | All tasks/stepactions/pipelines | Yes |
 | `run-task-tests.yaml` | `tasks/**/*.{yaml,sh}` with `tests/` dir | Yes |
 | `validate-agents-md.yaml` | `AGENTS.md` | Yes |
