@@ -360,7 +360,7 @@ spec:
               - name: packageName
                 value: $(params.PACKAGE_NAME)
               - name: channelName
-                value: $(params.CHANNEL_NAME)
+                value: "candidate"
           - name: process-image-mirror-set
             image: quay.io/konflux-ci/konflux-test:1.5.2@sha256:c370a7bc6e172cdbab001f1a19f37ebc95f47c3d8fe2d915fa4641132490ead7
             computeResources:
