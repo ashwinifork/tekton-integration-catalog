@@ -649,6 +649,8 @@ spec:
             volumeMounts:
               - name: credentials
                 mountPath: /credentials
+              - name: oci-auth
+                mountPath: /oci-auth
             script: |
               #!/usr/bin/env bash
               set -euo pipefail
@@ -759,7 +761,35 @@ spec:
 
               echo "[$(date --utc +%FT%T.%3NZ)] OperatorGroup name is \"$OPERATORGROUP\""
 
+              # Inject registry pull credentials into the ephemeral cluster so the
+              # CatalogSource pod can pull the FBC fragment image.
+              PULL_SECRET_NAME=""
+              OCI_DOCKERCFG="/oci-auth/oci-storage-dockerconfigjson"
+              if [[ -f "$OCI_DOCKERCFG" ]]; then
+                echo "[$(date --utc +%FT%T.%3NZ)] Creating image pull secret in namespace $INSTALL_NAMESPACE"
+                PULL_SECRET_NAME=$(oc create -n "$INSTALL_NAMESPACE" -f - -o jsonpath='{.metadata.name}' <<EOF
+              apiVersion: v1
+              kind: Secret
+              metadata:
+                generateName: fbc-pull-secret-
+              type: kubernetes.io/dockerconfigjson
+              data:
+                .dockerconfigjson: $(base64 -w0 < "$OCI_DOCKERCFG")
+              EOF
+                )
+                echo "[$(date --utc +%FT%T.%3NZ)] Pull secret created: $PULL_SECRET_NAME"
+              else
+                echo "[$(date --utc +%FT%T.%3NZ)] WARNING: No OCI credentials found at $OCI_DOCKERCFG, skipping pull secret injection"
+              fi
+
               CS_NAMESTANZA="generateName: oo-"
+
+              # Build CatalogSource manifest, including pull secret reference if available
+              CS_SECRETS_FIELD=""
+              if [[ -n "$PULL_SECRET_NAME" ]]; then
+                CS_SECRETS_FIELD="secrets:
+                  - $PULL_SECRET_NAME"
+              fi
 
               CS_MANIFEST=$(cat <<EOF
               apiVersion: operators.coreos.com/v1alpha1
@@ -770,6 +800,7 @@ spec:
               spec:
                 sourceType: grpc
                 image: $FBC_FRAGMENT
+                $CS_SECRETS_FIELD
                 grpcPodConfig:
                   securityContextConfig: restricted
                   extractContent:
