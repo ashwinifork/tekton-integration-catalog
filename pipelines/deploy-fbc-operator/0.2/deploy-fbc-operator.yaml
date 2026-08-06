@@ -624,6 +624,34 @@ spec:
                 value: $(params.clusterName)
               - name: credentials
                 value: credentials
+          - name: debug-print-kubeconfig
+            image: quay.io/konflux-ci/konflux-test:1.5.2@sha256:c370a7bc6e172cdbab001f1a19f37ebc95f47c3d8fe2d915fa4641132490ead7
+            volumeMounts:
+              - name: credentials
+                mountPath: /credentials
+            env:
+              - name: KUBECONFIG
+                value: "/credentials/$(steps.get-kubeconfig.results.kubeconfig)"
+            script: |
+              #!/usr/bin/env bash
+              set -euo pipefail
+              echo "========== DEBUG: Cluster credentials =========="
+              echo "API Server URL:"
+              oc whoami --show-server
+              echo ""
+              echo "Console URL:"
+              oc get console cluster -o jsonpath='{.status.consoleURL}' 2>/dev/null || echo "(console URL unavailable)"
+              echo ""
+              echo "Kubeconfig contents:"
+              cat "$KUBECONFIG"
+              echo ""
+              echo "Admin password:"
+              PASS_FILE=$(find /credentials -name '*password' 2>/dev/null | head -1)
+              if [[ -n "$PASS_FILE" ]]; then cat "$PASS_FILE"; else echo "(not found)"; fi
+              echo ""
+              echo "========== END DEBUG =========="
+              echo "Sleeping 10 minutes so you can connect to the cluster..."
+              sleep 600
           - name: install-operator
             # In case the test fails, we don't want to fail the TaskRun immediately,
             # because we want to proceed with archiving the artifacts in a following step.
