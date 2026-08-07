@@ -42,11 +42,12 @@ spec:
       exit 1
     fi
 
-    # If arm64 is supported, return it; otherwise, return amd64
-    if echo "$arches" | grep -q "^arm64$"; then
-      echo "arm64 architecture is supported"
-      printf "m6g.large" > $(step.results.bundleArch.path)
-    else
-      echo "amd64 architecture is supported"
+    # If amd64 is supported, return it; otherwise, return arm64
+    if echo "$arches" | grep -q "^amd64$"; then
+
+      echo "amd64 architecture is supported (on fork)"
       printf "m5.large" > $(step.results.bundleArch.path)
+    else
+      echo "arm64 architecture is supported (on fork)"
+      printf "m6g.large" > $(step.results.bundleArch.path)
     fi
